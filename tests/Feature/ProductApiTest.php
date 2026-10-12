@@ -252,4 +252,54 @@ class ProductApiTest extends TestCase
     );
     }
 
+
+    
+public function test_guest_cannot_update_product(): void
+{
+    $category = Category::create([
+        'name' => 'Test Category',
+    ]);
+
+    $product = Prodect::create([
+        'name' => 'Test Laptop',
+        'price' => 1000,
+        'description' => 'Test product',
+        'category_id' => $category->id,
+    ]);
+
+    $response = $this->putJson('/api/products/' . $product->id, [
+        'name' => 'Updated Laptop',
+        'price' => 1500,
+        'description' => 'Updated description',
+    ]);
+
+    $response->assertUnauthorized();
+}
+
+
+public function test_guest_cannot_delete_product(): void
+{
+    $category = Category::create([
+        'name' => 'Test Category',
+    ]);
+
+    $product = Prodect::create([
+        'name' => 'Test Laptop',
+        'price' => 1000,
+        'description' => 'Test product',
+        'category_id' => $category->id,
+    ]);
+
+    $response = $this->deleteJson('/api/products/' . $product->id);
+
+    $response->assertUnauthorized();
+
+    $this->assertDatabaseHas('prodects', [
+        'id' => $product->id,
+    ]);
+}
+
+
+
+
 }
