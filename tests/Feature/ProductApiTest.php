@@ -217,4 +217,39 @@ class ProductApiTest extends TestCase
             ->assertJsonValidationErrors(['name', 'price']);
     }
 
+    
+    public function test_admin_can_upload_product_image(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $admin = \App\Models\User::factory()->create([
+            'role' => 'admin',
+        ]);
+         $category = Category::create([
+        'name' => 'Test Category',
+          ]);
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader(
+            'Authorization',
+            'Bearer ' . $token
+        )->postJson('/api/products', [
+            'name' => 'Test Product',
+            'price' => 100,
+            'description' => 'Product with image',
+            'category_id' => $category->id,
+           'image' => \Illuminate\Http\UploadedFile::fake()
+                  ->create('product.jpg', 100, 'image/jpeg'),
+        ]);
+
+        $response->assertCreated();
+
+        $imagePath = $response->json('data.image');
+
+        $this->assertNotEmpty($imagePath);
+       $this->assertTrue(
+    \Illuminate\Support\Facades\Storage::disk('public')->exists($imagePath)
+    );
+    }
+
 }
