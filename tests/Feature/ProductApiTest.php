@@ -196,4 +196,25 @@ class ProductApiTest extends TestCase
             'id' => $product->id,
         ]);
     }
+
+    
+    public function test_product_cannot_be_created_without_required_fields(): void
+    {
+        $admin = \App\Models\User::factory()->create([
+            'role' => 'admin',
+        ]);
+
+        $token = $admin->createToken('test-token')->plainTextToken;
+
+        $response = $this->withHeader(
+            'Authorization',
+            'Bearer ' . $token
+        )->postJson('/api/products', [
+            'description' => 'Product without name and price',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['name', 'price']);
+    }
+
 }
