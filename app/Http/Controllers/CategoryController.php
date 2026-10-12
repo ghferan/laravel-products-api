@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests\StoreCategoryRequest;
 use App\Http\Requests\UpdateCategoryRequest;
 use App\Http\Requests\IndexCategoryRequest;
-
+use Illuminate\Support\Facades\Gate;
 use App\Models\Category;
 
 use App\Http\Resources\CategoryResource;
@@ -16,27 +16,33 @@ class CategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexCategoryRequest $request)
-    {        
-        $filters = $request->validated();
-        $query = Category::query();
-            $query->when(isset($filters['search']), function ($query) use ($filters) {
+ 
+public function index(IndexCategoryRequest $request)
+{
+    $filters = $request->validated();
+
+    $query = Category::query();
+
+    $query->when(isset($filters['search']), function ($query) use ($filters) {
         $query->where(
             'name',
             'like',
             '%' . $filters['search'] . '%'
-                );
-            });
-        $categories = Category::paginate(10);
+        );
+    });
 
-         return CategoryResource::collection($categories);
-    }
+    $categories = $query->paginate(10);
+
+    return CategoryResource::collection($categories);
+}
+
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreCategoryRequest  $request)
     {
+        Gate::authorize('create', Category::class);
         $category = Category::create([
         'name' => $request->validated('name'),
         ]);
@@ -60,6 +66,7 @@ class CategoryController extends Controller
      */
     public function update(UpdateCategoryRequest $request, Category $category)
     {
+        Gate::authorize('update', $category);
         $category->update($request->validated());
 
             return new CategoryResource($category);
@@ -70,6 +77,7 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        Gate::authorize('delete', $category);
         $category->delete();
 
         return response()->json([

@@ -300,6 +300,145 @@ public function test_guest_cannot_delete_product(): void
 }
 
 
+public function test_guest_cannot_create_category()
+{
+    $response = $this->postJson('/api/categories', [
+        'name' => 'Electronics',
+    ]);
+
+    $response->assertUnauthorized();
+}
+
+public function test_normal_user_cannot_create_category()
+{
+    $user = User::factory()->create([
+        'role' => 'user',
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->postJson('/api/categories', [
+        'name' => 'Electronics',
+    ]);
+
+    $response->assertForbidden();
+
+    $this->assertDatabaseMissing('categories', [
+        'name' => 'Electronics',
+    ]);
+}
+
+
+public function test_admin_can_create_category()
+{
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $response = $this->postJson('/api/categories', [
+        'name' => 'Electronics',
+    ]);
+
+    $response->assertCreated();
+
+    $this->assertDatabaseHas('categories', [
+        'name' => 'Electronics',
+    ]);
+}
+
+
+public function test_normal_user_cannot_update_category()
+{
+    $category = Category::create([
+        'name' => 'Electronics',
+    ]);
+
+    $user = User::factory()->create([
+        'role' => 'user',
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->putJson('/api/categories/' . $category->id, [
+        'name' => 'Computers',
+    ]);
+
+    $response->assertForbidden();
+
+    $this->assertDatabaseHas('categories', [
+        'id' => $category->id,
+        'name' => 'Electronics',
+    ]);
+}
+
+public function test_normal_user_cannot_delete_category()
+{
+    $category = Category::create([
+        'name' => 'Electronics',
+    ]);
+
+    $user = User::factory()->create([
+        'role' => 'user',
+    ]);
+
+    Sanctum::actingAs($user);
+
+    $response = $this->deleteJson('/api/categories/' . $category->id);
+
+    $response->assertForbidden();
+
+    $this->assertDatabaseHas('categories', [
+        'id' => $category->id,
+    ]);
+}
+
+
+public function test_admin_can_update_category()
+{
+    $category = Category::create([
+        'name' => 'Electronics',
+    ]);
+
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $response = $this->putJson('/api/categories/' . $category->id, [
+        'name' => 'Computers',
+    ]);
+
+    $response->assertOk();
+
+    $this->assertDatabaseHas('categories', [
+        'id' => $category->id,
+        'name' => 'Computers',
+    ]);
+}
+
+public function test_admin_can_delete_category()
+{
+    $category = Category::create([
+        'name' => 'Electronics',
+    ]);
+
+    $admin = User::factory()->create([
+        'role' => 'admin',
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $response = $this->deleteJson('/api/categories/' . $category->id);
+
+    $response->assertOk();
+
+    $this->assertDatabaseMissing('categories', [
+        'id' => $category->id,
+    ]);
+}
 
 
 }
