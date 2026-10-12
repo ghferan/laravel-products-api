@@ -1,16 +1,17 @@
 # Laravel Products API
 
-A RESTful API built with Laravel for managing products, with authentication, authorization, request validation, and automated feature tests.
+A RESTful API built with Laravel 12 for managing products and categories, featuring token-based authentication, role-based authorization, request validation, image uploads, and automated feature tests.
 
 ## Features
 
-- RESTful API endpoints for product management.
-- Token-based authentication using Laravel Sanctum.
-- Role-based authorization for administrative actions.
-- Form Request validation for incoming data.
-- Product image upload and public storage support.
-- API Resources for consistent JSON responses.
-- Automated feature tests for authentication and authorization.
+- RESTful API for products and categories
+- Token-based authentication with Laravel Sanctum
+- Role-based authorization (`admin` and `user`)
+- Form Request validation
+- Product image uploads using Laravel public storage
+- API Resources for consistent JSON responses
+- Product search, filtering, sorting, and pagination
+- Automated feature tests for authentication and authorization
 
 ## Tech Stack
 
@@ -23,7 +24,7 @@ A RESTful API built with Laravel for managing products, with authentication, aut
 
 ## Requirements
 
-- PHP and the required Laravel PHP extensions
+- PHP and the required Laravel extensions
 - Composer
 - MySQL
 - Git
@@ -33,17 +34,17 @@ A RESTful API built with Laravel for managing products, with authentication, aut
 1. Clone the repository:
 
    ```bash
-   git clone YOUR_REPOSITORY_URL
-   cd my-api
+   git clone https://github.com/ghferan/laravel-products-api.git
+   cd laravel-products-api
    ```
 
-2. Install PHP dependencies:
+2. Install dependencies:
 
    ```bash
    composer install
    ```
 
-3. Create your environment file:
+3. Create the environment file:
 
    ```bash
    cp .env.example .env
@@ -55,7 +56,7 @@ A RESTful API built with Laravel for managing products, with authentication, aut
    php artisan key:generate
    ```
 
-5. Configure your database credentials in `.env`:
+5. Create a MySQL database and configure the database credentials in `.env`:
 
    ```env
    DB_CONNECTION=mysql
@@ -66,7 +67,7 @@ A RESTful API built with Laravel for managing products, with authentication, aut
    DB_PASSWORD=your_database_password
    ```
 
-6. Run database migrations:
+6. Run migrations:
 
    ```bash
    php artisan migrate
@@ -88,31 +89,53 @@ The API will be available at `http://127.0.0.1:8000`.
 
 ## API Endpoints
 
+### Products
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/products` | List products | Public |
+| GET | `/api/products/{product}` | Retrieve a product | Public, subject to controller authorization |
+| POST | `/api/products` | Create a product | Admin |
+| PUT/PATCH | `/api/products/{product}` | Update a product | Admin |
+| DELETE | `/api/products/{product}` | Delete a product | Admin |
+
+### Categories
+
+| Method | Endpoint | Description | Access |
+|---|---|---|---|
+| GET | `/api/categories` | List categories | Public |
+| GET | `/api/categories/{category}` | Retrieve a category | Public |
+| POST | `/api/categories` | Create a category | Admin |
+| PUT/PATCH | `/api/categories/{category}` | Update a category | Admin |
+| DELETE | `/api/categories/{category}` | Delete a category | Admin |
+
+### Authentication
+
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/products` | List products |
-| POST | `/api/products` | Create a product |
-| GET | `/api/products/{product}` | Retrieve a product |
-| PUT/PATCH | `/api/products/{product}` | Update a product |
-| DELETE | `/api/products/{product}` | Delete a product |
+| POST | `/api/register` | Register a user |
+| POST | `/api/login` | Log in and obtain a token |
+| POST | `/api/logout` | Log out |
 | GET | `/api/user` | Retrieve the authenticated user |
 
-Protected endpoints require a valid Sanctum bearer token.
+Protected endpoints require a valid Sanctum bearer token. Administrative endpoints require an authenticated user with the `admin` role.
 
 ## Authentication
 
-Send the token in the request header:
+Include the token in the request headers:
 
 ```http
 Authorization: Bearer YOUR_TOKEN
 Accept: application/json
 ```
 
+Obtain a token through the login endpoint and use it when calling protected endpoints.
+
 ## Image Upload
 
-To upload a product image, send a `multipart/form-data` request with the image field set to a file.
+Send a `multipart/form-data` request with an `image` field containing the image file. Uploaded images are stored on Laravel's public disk.
 
-Uploaded files are stored on the public disk. The `storage:link` command makes public files accessible through the application's storage URL.
+Run `php artisan storage:link` to make public storage files accessible through the application's storage URL.
 
 ## Testing
 
@@ -122,15 +145,16 @@ Run the automated test suite:
 php artisan test
 ```
 
-Current test result: **10 tests passed, 13 assertions**.
+The tests cover product operations, validation, image uploads, and authorization for guests, regular users, and administrators.
 
 ## Security
 
-- Do not commit `.env` or real credentials.
+- Never commit `.env` or real credentials.
 - Use `.env.example` as the configuration template.
-- Use a valid bearer token for protected endpoints.
+- Use bearer tokens for protected endpoints.
 - Keep production secrets out of source control.
+- Restrict administrative operations to authorized administrators.
 
 ## License
 
-This project is available for learning and portfolio purposes. Add a license file if you intend to distribute it under a specific open-source license.
+This project is intended for learning and portfolio purposes. Add a license file if you plan to distribute it under a specific open-source license.
